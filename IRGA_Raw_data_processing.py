@@ -1,66 +1,48 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
-#!/usr/bin/env python
-# coding: utf-8
-
-
-# In[29]:
-
-# ## What is your file named? <br>
-# ## should be 'name.txt' and saved in the current directory
-
-# In[ ]:
-
-
-
-
-
 # In[52]:
 
+### Import sys and use it to grab the command line arguments for 
+### filename (should be 'name.txt' and saved in the current directory),
+### IRGA baseline CO2 threshold (ppm of CO2) and IRGA measurment 
+### frequency (seconds). 
 
 import sys
 
-#filename='9_13_20_standards.txt'
 filename=str(sys.argv[1])
 
-if sys.argv[2]:
+arg_length=len(sys.argv)
+
+if arg_length == 3:
     threshold=float(str(sys.argv[2])) #ppm co2
 else:
-    threshhold = 1.0
+    threshold = 1.0
+    print('threshold of 1.0 ppm CO2 has been used')
     
-if sys.argv[3]:
-    freq=float(str(sys.argv[3])) 
+if arg_length == 4:
+    freq=float(str(sys.argv[3])) # seconds
 else:
     freq=1.0
-
-
-# In[22]:
+    print('measurement frequency of 1.0 seconds has been used')
 
 # In[45]:
 
+### Import packages and load the data.
 
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from datetime import datetime as dt
-#dat1=np.loadtxt('9_13_20 standards.txt',dtype='str')
+
 dat1=np.loadtxt(filename,dtype='str',skiprows=1)
-#dat1 = open('9_13_20 standards.txt','r')
-#lines = dat1.readlines()[1:]
-#dat1.close()
-
-
-# In[23]:
 
 # In[53]:
 
+### convert the dataset to a pandas dataframe.
+### restructure the time variable to be a float point number
+### that increases by the frequency argument supplied in the command line.
+### Begin integration by taking the trapozoidal area of each segment of CO2 
+### measurements (too be grouped and summed later).
 
-#freq=1.0
-#threshhold = 1.0
 dat=pd.DataFrame(data=dat1,columns=dat1[0,0:])
 #dat["area"] =pd.to_numeric(dat['area'][1:], downcast="float")
 #dat["time"] =pd.to_numeric(dat['time'][1:], downcast="float")
@@ -75,11 +57,9 @@ for i in range(len(dat['CO2(ppm)'][1:])):
     dat['area'][i]=freq*((dat['CO2(ppm)'][i]+dat['CO2(ppm)'][i+1])/2)
 dat = dat.iloc[1:]
 
-
-# In[24]:
-
 # In[48]:
 
+### indicate when a sample is and is not being measured
 
 def label_on (dat):
     if dat['area'] <= threshold :
@@ -90,16 +70,19 @@ def label_on (dat):
 
 # In[49]:
 
+### delete all rows when samples are not being measured
 
 dat['on'] = dat.apply(lambda row: label_on(row), axis=1)
 #dat.apply(lambda row: label_on(row), axis=1)
 dat=dat[dat.on != 0]
 
-
-# In[25]:
-
 # In[50]:
 
+### use the breaks made in the continuity of the dataset to group
+### rows into samples. 
+### sum the trapozoidal areas for each grouped sample
+### create a final dataset with the grouped sums and the original 
+### timestamp from the IRGA software when that sample was injected. 
 
 dat['count']=1+np.arange(len(dat['area']))#range(1,len(dat['area']))
 dat['count2']=0
@@ -116,7 +99,6 @@ dat2=dat.groupby('group').first().reset_index()
 dat=dat.groupby(['group'])[['area']].sum()
 dat['Time(H:M:S)']=np.array(dat2["Time(H:M:S)"])
 
-
 # In[26]:
 
 # # Check that there are 3 columns for group, area, and time<br>
@@ -124,30 +106,13 @@ dat['Time(H:M:S)']=np.array(dat2["Time(H:M:S)"])
 # # areas are large positive numbers<br>
 # # time is a assending clock times corresponding to when you sampled
 
-# In[51]:
-
-
-dat
-
-
-# In[27]:
-
-# #export to excel with same file name to current directory
+#dat
 
 # In[18]:
 
+### export to excel with same file name to current directory
 
 dat.to_excel(filename.replace('txt','xlsx'))
 
 
-# In[ ]:
 
-# In[ ]:
-
-# In[ ]:
-
-# In[ ]:
-
-# In[ ]:
-
-# In[ ]:
