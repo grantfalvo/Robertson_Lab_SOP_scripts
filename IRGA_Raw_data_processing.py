@@ -48,8 +48,6 @@ dat1=np.loadtxt(filename,dtype='str',skiprows=1)
 ### measurements (too be grouped and summed later).
 
 dat=pd.DataFrame(data=dat1,columns=dat1[0,0:])
-#dat["area"] =pd.to_numeric(dat['area'][1:], downcast="float")
-#dat["time"] =pd.to_numeric(dat['time'][1:], downcast="float")
 dat["Time(H:M:S)"] = pd.to_timedelta(dat['Time(H:M:S)'][1:]).dt.total_seconds()
 dat["Time(H:M:S)"] = pd.to_numeric(dat['Time(H:M:S)'][1:], downcast="float")
 dat["Time(H:M:S)"] = dat["Time(H:M:S)"].astype('int64',errors='ignore')
@@ -71,13 +69,11 @@ def label_on (dat):
     if dat['area'] > threshold :
         return 1
 
-
 # In[49]:
 
 ### delete all rows when samples are not being measured
 
 dat['on'] = dat.apply(lambda row: label_on(row), axis=1)
-#dat.apply(lambda row: label_on(row), axis=1)
 dat=dat[dat.on != 0]
 
 # In[50]:
