@@ -13,18 +13,21 @@ import sys
 filename=str(sys.argv[1])
 
 arg_length=len(sys.argv)
+#print('number of arguments given', arg_length)
 
-if arg_length == 3:
+if arg_length >= 3:
     threshold=float(str(sys.argv[2])) #ppm co2
+    print('threshold of',threshold,'ppm CO2 has been specified')
 else:
     threshold = 1.0
-    print('threshold of 1.0 ppm CO2 has been used')
+    print('the default threshold of 1.0 ppm CO2 has been used')
     
 if arg_length == 4:
     freq=float(str(sys.argv[3])) # seconds
+    print('measurement frequency of',freq,'seconds has been specified')
 else:
     freq=1.0
-    print('measurement frequency of 1.0 seconds has been used')
+    print('the default measurement frequency of 1.0 seconds has been used')
 
 # In[45]:
 
@@ -32,6 +35,7 @@ else:
 
 import numpy as np
 import pandas as pd
+pd.options.mode.chained_assignment = None ## removes annoying warnings
 
 dat1=np.loadtxt(filename,dtype='str',skiprows=1)
 
@@ -44,8 +48,6 @@ dat1=np.loadtxt(filename,dtype='str',skiprows=1)
 ### measurements (too be grouped and summed later).
 
 dat=pd.DataFrame(data=dat1,columns=dat1[0,0:])
-#dat["area"] =pd.to_numeric(dat['area'][1:], downcast="float")
-#dat["time"] =pd.to_numeric(dat['time'][1:], downcast="float")
 dat["Time(H:M:S)"] = pd.to_timedelta(dat['Time(H:M:S)'][1:]).dt.total_seconds()
 dat["Time(H:M:S)"] = pd.to_numeric(dat['Time(H:M:S)'][1:], downcast="float")
 dat["Time(H:M:S)"] = dat["Time(H:M:S)"].astype('int64',errors='ignore')
@@ -67,13 +69,11 @@ def label_on (dat):
     if dat['area'] > threshold :
         return 1
 
-
 # In[49]:
 
 ### delete all rows when samples are not being measured
 
 dat['on'] = dat.apply(lambda row: label_on(row), axis=1)
-#dat.apply(lambda row: label_on(row), axis=1)
 dat=dat[dat.on != 0]
 
 # In[50]:
